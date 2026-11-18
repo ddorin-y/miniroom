@@ -1280,11 +1280,16 @@ function stopBgm(){if(tick){clearInterval(tick);tick=null;}if(audioEl){audioEl.p
 function playBgm(){stopBgm();const T=curTrack();
   if(!T){drawBgmList();try{bgmDlg.showModal();}catch(e){}return;}   // 음악이 하나도 없으면 추가 창을 열어 줌
   if(T.yt){ytPlay(T.yt);}
-  else if(T.blob){if(!audioEl){audioEl=new Audio();audioEl.loop=true;}if(audioEl.dataset.id!==T.id){if(audioEl.src)URL.revokeObjectURL(audioEl.src);audioEl.src=URL.createObjectURL(T.blob);audioEl.dataset.id=T.id;}audioEl.play().catch(()=>{});}
+  else if(T.blob){if(!audioEl){audioEl=new Audio();audioEl.addEventListener('ended',()=>nextTrack());}audioEl.loop=[...TRACKS,...userTracks].length<2;if(audioEl.dataset.id!==T.id){if(audioEl.src)URL.revokeObjectURL(audioEl.src);audioEl.src=URL.createObjectURL(T.blob);audioEl.dataset.id=T.id;}audioEl.play().catch(()=>{});}
   else{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume();next=ac.currentTime+.05;step=0;tick=setInterval(sched,25);sched();}
   bgm.classList.add('playing');bgmBtn.textContent='❚❚';bgmBtn.setAttribute('aria-label','BGM 멈춤');}
 const showTitle=()=>{const T=curTrack();if(T)curId=T.id;bgmTitle.textContent=T?'♪ '+T.name:'♪ 음악을 추가해 보세요';};
 bgmBtn.addEventListener('click',()=>isPlaying()?stopBgm():playBgm());
+function nextTrack(){   // 목록 순서대로 다음 곡, 마지막 곡 다음은 첫 곡
+  const all=[...TRACKS,...userTracks];if(!all.length)return;
+  const i=all.findIndex(t=>t.id===curId),n=all[(i+1)%all.length];
+  curId=n.id;ls.set('mr-bgm',curId);showTitle();playBgm();drawBgmList();
+}
 
 /* ---------- 유튜브 음악 (공식 IFrame 플레이어를 화면 밖에 두고 소리만 재생) ---------- */
 function ytId(u){
@@ -1335,7 +1340,7 @@ function ytInit(){
   const d=document.createElement('div');d.id='ytPlayer';box.appendChild(d);document.body.appendChild(box);
   const mk=()=>{ytp=new YT.Player('ytPlayer',{width:200,height:200,playerVars:{playsinline:1,controls:0,disablekb:1,fs:0,rel:0},events:{
     onReady:()=>{ytOk=true;if(ytOn&&ytWant){ytCur=ytWant;ytp.loadVideoById(ytWant);}},
-    onStateChange:e=>{if(e.data===1)ytFixTitle();if(e.data===0&&ytOn){ytp.seekTo(0);ytp.playVideo();}},   // 한 곡 반복
+    onStateChange:e=>{if(e.data===1)ytFixTitle();if(e.data===0&&ytOn){if([...TRACKS,...userTracks].length>1)nextTrack();else{ytp.seekTo(0);ytp.playVideo();}}},   // 곡이 끝나면 다음 곡
     onAutoplayBlocked:()=>{stopBgm();},                                         // 브라우저가 막으면 ▶ 상태로 되돌림
     onError:()=>{if(ytOn){stopBgm();alert('이 영상은 재생할 수 없어요. (퍼가기가 막혔거나 삭제된 영상일 수 있어요)');}}
   }});};
