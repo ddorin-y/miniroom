@@ -273,6 +273,13 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 .bgm-list button[aria-pressed="true"]{color:#d4567a;font-weight:700;background:#fff5f8}
 .bgm-list .no{width:20px;color:#c9a0b2;font-size:12.0px}.bgm-list .ti{flex:1}.bgm-list .ln{font-size:11.0px;color:#a0a8b8}
 .bgm-add{display:flex;align-items:center;gap:10px}.bgm-add .ph-pick{flex:none;padding:8px 14px}.bgm-note{font-size:11.5px;color:#a0a8b8}
+.bgm-yt{display:flex;gap:8px;margin-top:10px}
+.bgm-yt input{flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid #e3d6dc;border-radius:999px;padding:8px 14px;background:#fff;color:#444}
+.bgm-yt .ph-pick{flex:none;padding:8px 14px}
+#ytMsg{margin:6px 2px 0;min-height:1.3em}
+.bgm-list li{display:flex;align-items:center}
+.bgm-list li>button:first-child{flex:1;width:auto;min-width:0}
+.bgm-list .bgm-del{flex:none;width:auto;padding:10px 12px;color:#c9a0b2;font-size:16px;border-top:1px dotted #e3d6dc}
 .gm-bar{display:flex;align-items:center;gap:10px;font-size:13px;color:#666}.gm-bar b{color:#e0567a;font-size:15px}
 .gm-time{flex:1;height:8px;border-radius:999px;background:#f1e6ea;overflow:hidden}.gm-time i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffb3c6,#ffd77a);transition:width .1s linear}
 .gm-field{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 6px;padding:14px;border-radius:14px;background:#e6f5e8;background-image:radial-gradient(#d3eed7 2px,transparent 2.5px);background-size:16px 16px;touch-action:manipulation}
@@ -584,7 +591,9 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 <dialog class="dlg" id="bgmDlg" aria-labelledby="bgmTitle">
   <div class="dlg-h"><h2 id="bgmTitle"><span class="pixt">BGM</span><span class="memo-sub">미니룸 BGM</span></h2><button class="close" data-close aria-label="닫기">×</button></div>
   <ul class="bgm-list" id="bgmList"></ul>
-  <div class="bgm-add"><label class="ph-pick">내 음악 추가<input type="file" id="bgmFile" accept="audio/*" hidden></label><span class="bgm-note">추가한 음악은 이 브라우저에 저장돼요.</span></div>
+  <div class="bgm-add"><label class="ph-pick">내 음악 추가<input type="file" id="bgmFile" accept="audio/*" hidden></label><span class="bgm-note">추가한 음악은 둘 다 들을 수 있어요. (파일은 30MB 이하)</span></div>
+  <form class="bgm-yt" id="ytForm"><input id="ytUrl" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="유튜브 주소를 붙여 넣어요" aria-label="유튜브 주소"><button class="ph-pick" type="submit">추가</button></form>
+  <p class="bgm-note" id="ytMsg" role="status"></p>
 </dialog>
 <dialog class="dlg" id="phDlg" aria-labelledby="phTitle">
   <div class="dlg-h"><h2><span class="pixt">PHOTO</span><span class="memo-sub" id="phTitle"></span></h2><button class="close" data-close aria-label="닫기">×</button></div>
@@ -1264,18 +1273,105 @@ const TRACKS=[
   {id:'t4',name:'두근두근 산책',spb:.16,lead:'square',mel:['C5','E5','G5','E5','A5','G5','E5','C5','D5','F5','A5','F5','G5',null,'G5',null,'E5','G5','C6','G5','A5','F5','D5','F5','E5','D5','C5','D5','C5',null,null,null],bas:['C3','A2','D3','G2','C3','F2','G2','C3']},
 ];
 let ac=null,tick=null,step=0,next=0,audioEl=null,userTracks=[],curId=ls.get('mr-bgm','t1');
+let ytp=null,ytOk=false,ytOn=false,ytWant=null,ytCur=null,ytLoading=false;   // 유튜브 플레이어 상태
 function blip(f,t,d,type,v){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.03);}
 const curTrack=()=>TRACKS.find(t=>t.id===curId)||userTracks.find(t=>t.id===curId)||TRACKS[0];
 function sched(){const T=curTrack();while(next<ac.currentTime+.15){const m=T.mel[step%32];if(m)blip(NF(m),next,T.spb*.9,T.lead,T.lead==='square'?.035:.06);if(step%4===0)blip(NF(T.bas[(step/4)%8]),next,T.spb*3.6,'triangle',.07);next+=T.spb;step++;}}
 const bgm=document.getElementById('bgm'),bgmBtn=document.getElementById('bgmBtn'),bgmTitle=bgm.querySelector('.marq span');
-const isPlaying=()=>!!tick||(audioEl&&!audioEl.paused);
-function stopBgm(){if(tick){clearInterval(tick);tick=null;}if(audioEl){audioEl.pause();}bgm.classList.remove('playing');bgmBtn.textContent='▶';bgmBtn.setAttribute('aria-label','BGM 재생');}
+const isPlaying=()=>!!tick||ytOn||(audioEl&&!audioEl.paused);
+function stopBgm(){if(tick){clearInterval(tick);tick=null;}if(audioEl){audioEl.pause();}ytOn=false;if(ytp&&ytOk){try{ytp.pauseVideo();}catch(e){}}bgm.classList.remove('playing');bgmBtn.textContent='▶';bgmBtn.setAttribute('aria-label','BGM 재생');}
 function playBgm(){stopBgm();const T=curTrack();
-  if(T.blob){if(!audioEl){audioEl=new Audio();audioEl.loop=true;}if(audioEl.dataset.id!==T.id){if(audioEl.src)URL.revokeObjectURL(audioEl.src);audioEl.src=URL.createObjectURL(T.blob);audioEl.dataset.id=T.id;}audioEl.play().catch(()=>{});}
+  if(T.yt){ytPlay(T.yt);}
+  else if(T.blob){if(!audioEl){audioEl=new Audio();audioEl.loop=true;}if(audioEl.dataset.id!==T.id){if(audioEl.src)URL.revokeObjectURL(audioEl.src);audioEl.src=URL.createObjectURL(T.blob);audioEl.dataset.id=T.id;}audioEl.play().catch(()=>{});}
   else{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume();next=ac.currentTime+.05;step=0;tick=setInterval(sched,25);sched();}
   bgm.classList.add('playing');bgmBtn.textContent='❚❚';bgmBtn.setAttribute('aria-label','BGM 멈춤');}
 const showTitle=()=>{bgmTitle.textContent='♪ '+curTrack().name;};
 bgmBtn.addEventListener('click',()=>isPlaying()?stopBgm():playBgm());
+
+/* ---------- 유튜브 음악 (공식 IFrame 플레이어를 화면 밖에 두고 소리만 재생) ---------- */
+function ytId(u){
+  u=(u||'').trim();if(/^[\w-]{11}$/.test(u))return u;
+  try{
+    const x=new URL(/^https?:\/\//i.test(u)?u:'https://'+u),h=x.hostname.replace(/^(www|m|music)\./,'');let id=null;
+    if(h==='youtu.be')id=x.pathname.split('/')[1];
+    else if(h==='youtube.com'||h==='youtube-nocookie.com')id=x.searchParams.get('v')||(x.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?]+)/)||[])[1];
+    return id&&/^[\w-]{11}$/.test(id)?id:null;
+  }catch(e){return null;}
+}
+// 제목 뒤의 (Official Video), [MV], 【가사】 같은 꼬리표만 지움 — (feat. …) 같은 건 그대로 둠
+const cleanTitle=t=>{const o=String(t).replace(/\s+/g,' ').trim();
+  const c=o.replace(/\s*[\(\[【][^\)\]】]*?(?:\b(?:official|mv|m\/v|music\s*video|lyrics?|audio|visualizer|hd|4k)\b|가사|뮤직\s*비디오|공식)[^\)\]】]*[\)\]】]/gi,'').replace(/\s+/g,' ').trim();
+  return (c||o).slice(0,60);};
+const YT_NONAME='곡 제목 불러오는 중…';
+async function ytTitle(id){   // 제목 가져오기 + 퍼가기가 막힌 영상 걸러내기
+  const u='https://www.youtube.com/watch?v='+id;
+  try{   // 1순위: 유튜브 공식 oEmbed
+    const r=await fetch('https://www.youtube.com/oembed?format=json&url='+encodeURIComponent(u));
+    if(r.status===401||r.status===403)return {ok:false,why:'이 영상은 퍼가기가 막혀 있어서 넣을 수 없어요.'};
+    if(r.status===404)return {ok:false,why:'영상을 찾을 수 없어요. 비공개이거나 삭제된 영상일 수 있어요.'};
+    if(r.ok){const j=await r.json();if(j.title)return {ok:true,name:cleanTitle(j.title)};}
+  }catch(e){}
+  try{   // 2순위: noembed (브라우저에서 바로 쓸 수 있게 열어 둔 중계 서비스)
+    const r=await fetch('https://noembed.com/embed?url='+encodeURIComponent(u));
+    const j=await r.json();
+    if(j.title)return {ok:true,name:cleanTitle(j.title)};
+    if(j.error&&/40[13]/.test(j.error))return {ok:false,why:'이 영상은 퍼가기가 막혀 있어서 넣을 수 없어요.'};
+    if(j.error&&/404/.test(j.error))return {ok:false,why:'영상을 찾을 수 없어요. 비공개이거나 삭제된 영상일 수 있어요.'};
+  }catch(e){}
+  return {ok:true,name:YT_NONAME};   // 둘 다 안 되면 처음 재생할 때 플레이어에서 제목을 읽어 채움
+}
+async function ytFixTitle(){   // 재생이 시작되면 플레이어에서 진짜 제목을 읽어 이름 채우기
+  try{
+    const vd=ytp.getVideoData&&ytp.getVideoData();if(!vd||!vd.title)return;
+    const t=userTracks.find(x=>x.yt===vd.video_id);
+    if(!t||(t.name!==YT_NONAME&&t.name!=='유튜브 음악'))return;
+    t.name=cleanTitle(vd.title);await idb.put('music',t);
+    if(SB)SB.from('music_items').update({name:t.name}).eq('id',t.id).then(()=>{});
+    showTitle();drawBgmList();
+  }catch(e){}
+}
+function ytInit(){
+  if(ytp||ytLoading)return;ytLoading=true;
+  const box=document.createElement('div');box.setAttribute('aria-hidden','true');
+  box.style.cssText='position:fixed;left:-9999px;top:0;width:200px;height:200px;overflow:hidden';
+  const d=document.createElement('div');d.id='ytPlayer';box.appendChild(d);document.body.appendChild(box);
+  const mk=()=>{ytp=new YT.Player('ytPlayer',{width:200,height:200,playerVars:{playsinline:1,controls:0,disablekb:1,fs:0,rel:0},events:{
+    onReady:()=>{ytOk=true;if(ytOn&&ytWant){ytCur=ytWant;ytp.loadVideoById(ytWant);}},
+    onStateChange:e=>{if(e.data===1)ytFixTitle();if(e.data===0&&ytOn){ytp.seekTo(0);ytp.playVideo();}},   // 한 곡 반복
+    onAutoplayBlocked:()=>{stopBgm();},                                         // 브라우저가 막으면 ▶ 상태로 되돌림
+    onError:()=>{if(ytOn){stopBgm();alert('이 영상은 재생할 수 없어요. (퍼가기가 막혔거나 삭제된 영상일 수 있어요)');}}
+  }});};
+  if(window.YT&&window.YT.Player)mk();
+  else{window.onYouTubeIframeAPIReady=mk;const sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';sc.onerror=()=>{ytLoading=false;box.remove();};document.head.appendChild(sc);}
+}
+function ytPlay(id){
+  ytOn=true;ytWant=id;ytInit();
+  if(ytp&&ytOk){if(ytCur!==id){ytCur=id;ytp.loadVideoById(id);}else ytp.playVideo();}
+}
+async function delMusic(t){
+  if(SB){try{
+    const {data}=await SB.from('music_items').select('path').eq('id',t.id).maybeSingle();
+    await SB.from('music_items').delete().eq('id',t.id);
+    if(data&&data.path&&!String(data.path).startsWith('yt:'))await SB.storage.from('music').remove([data.path]);
+  }catch(e){}}
+  await idb.del('music',t.id);userTracks=userTracks.filter(x=>x.id!==t.id);
+  if(curId===t.id){stopBgm();curId='t1';ls.set('mr-bgm',curId);}
+  showTitle();drawBgmList();
+}
+document.getElementById('ytForm').onsubmit=async e=>{
+  e.preventDefault();
+  const inp=document.getElementById('ytUrl'),ym=document.getElementById('ytMsg'),id=ytId(inp.value);
+  if(!id){ym.textContent='유튜브 영상 주소를 확인해 주세요. (예: https://youtu.be/…)';return;}
+  if(userTracks.some(t=>t.yt===id)){ym.textContent='이미 추가한 영상이에요.';return;}
+  ym.textContent='추가하는 중…';
+  const info=await ytTitle(id);
+  if(!info.ok){ym.textContent=info.why;return;}
+  const t={id:'y'+Date.now(),name:info.name,yt:id};
+  try{await idb.put('music',t);}catch(err){}
+  userTracks.push(t);inp.value='';ym.textContent=info.name===YT_NONAME?'추가했어요! 처음 재생하면 제목이 채워져요.':'추가했어요: '+info.name;
+  drawBgmList();ytInit();upMusic(t).catch(()=>{});
+};
+
 
 /* ---------- 둘만의 기록 ---------- */
 const DAY=86400000,dkey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -1514,12 +1610,15 @@ const bgmDlg=document.getElementById('bgmDlg');
 placeHot(document.getElementById('hotBox'),bboxOf(11.5,5.9,0,1.1,.45,10));
 function drawBgmList(){const ul=document.getElementById('bgmList');ul.innerHTML='';
   [...TRACKS,...userTracks].forEach((t,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed',t.id===curId);
-    b.innerHTML=`<span class="no">${String(i+1).padStart(2,'0')}</span><span class="ti"></span><span class="ln"></span>`;b.querySelector('.ti').textContent=t.name;b.querySelector('.ln').textContent=t.blob?'내 음악':'8비트';
-    b.onclick=()=>{curId=t.id;ls.set('mr-bgm',curId);showTitle();playBgm();drawBgmList();};li.appendChild(b);ul.appendChild(li);});}
+    b.innerHTML=`<span class="no">${String(i+1).padStart(2,'0')}</span><span class="ti"></span><span class="ln"></span>`;b.querySelector('.ti').textContent=t.name;b.querySelector('.ln').textContent=(t.yt||t.blob)?'내 음악':'8비트';
+    b.onclick=()=>{curId=t.id;ls.set('mr-bgm',curId);showTitle();playBgm();drawBgmList();};li.appendChild(b);
+    if(t.yt||t.blob){const d=document.createElement('button');d.type='button';d.className='bgm-del';d.textContent='×';d.setAttribute('aria-label',t.name+' 지우기');d.onclick=()=>{if(confirm('이 음악을 목록에서 지울까요?'))delMusic(t);};li.appendChild(d);}
+    ul.appendChild(li);});
+  if(userTracks.some(t=>t.yt))ytInit();}
 document.getElementById('bgmFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const t={id:'u'+Date.now(),name:f.name.replace(/\.[^.]+$/,''),blob:f};
   try{await idb.put('music',t);}catch(err){}userTracks.push(t);drawBgmList();upMusic(t).catch(()=>{});};
 document.getElementById('hotBox').onclick=()=>{drawBgmList();bgmDlg.showModal();};
-idb.all('music').then(l=>{userTracks=l||[];showTitle();}).catch(()=>showTitle());showTitle();
+idb.all('music').then(l=>{userTracks=l||[];showTitle();if(userTracks.some(t=>t.yt))ytInit();}).catch(()=>showTitle());showTitle();
 
 /* ---------- Supabase Storage: 사진첩·내 음악 동기화 (IndexedDB는 기기별 캐시) ---------- */
 const MUSIC_MAX=30*1024*1024;
@@ -1538,8 +1637,9 @@ async function upPhoto(it){
 }
 const syncAlbum=guard(async()=>{
   if(!SB)return;
+  const local=await idb.all('album')||[];
   const {data:rows,error}=await SB.from('album_items').select('*');if(error||!rows)return;
-  const local=await idb.all('album')||[],L=new Map(local.map(x=>[x.id,x])),R=new Set(rows.map(r=>r.id));
+  const L=new Map(local.map(x=>[x.id,x])),R=new Set(rows.map(r=>r.id));
   for(const l of local){
     if(!R.has(l.id)){if(l.up)await idb.del('album',l.id);else await upPhoto(l).catch(()=>{});}   // 상대가 지운 사진은 삭제, 아직 안 올린 사진은 업로드
   }
@@ -1554,6 +1654,7 @@ const syncAlbum=guard(async()=>{
 
 async function upMusic(t){
   if(!SB||t.noSync)return;
+  if(t.yt){const r=await SB.from('music_items').upsert({id:t.id,name:t.name,path:'yt:'+t.yt});if(r.error)throw r.error;t.up=true;await idb.put('music',t);return;}
   if(t.blob.size>MUSIC_MAX){t.noSync=true;await idb.put('music',t);alert('30MB가 넘는 음악은 이 기기에서만 들을 수 있어요.');return;}
   const ext=((t.blob.name||'').match(/\.(\w+)$/)||[,'mp3'])[1].toLowerCase(),path=t.id+'.'+ext;
   const {error}=await SB.storage.from('music').upload(path,t.blob,{contentType:t.blob.type||'audio/mpeg',upsert:true});
@@ -1564,10 +1665,13 @@ async function upMusic(t){
 }
 const syncMusic=guard(async()=>{
   if(!SB)return;
+  const local=await idb.all('music')||[];
   const {data:rows,error}=await SB.from('music_items').select('*');if(error||!rows)return;
-  const local=await idb.all('music')||[],have=new Set(local.map(x=>x.id));
-  for(const t of local)if(!t.up&&!t.noSync)await upMusic(t).catch(()=>{});
+  const have=new Set(local.map(x=>x.id)),R=new Set(rows.map(r=>r.id));
+  for(const t of local){if(t.up&&!R.has(t.id))await idb.del('music',t.id);else if(!t.up&&!t.noSync)await upMusic(t).catch(()=>{});}   // 상대가 지운 곡은 삭제, 아직 안 올린 곡은 업로드
+  for(const r of rows){const l=local.find(x=>x.id===r.id);if(l&&l.up&&l.name!==r.name){l.name=r.name;await idb.put('music',l);}}   // 이름이 바뀐 곡 반영
   for(const r of rows)if(!have.has(r.id)){
+    if(String(r.path).startsWith('yt:')){await idb.put('music',{id:r.id,name:r.name,yt:r.path.slice(3),up:true});continue;}
     const {data:b}=await SB.storage.from('music').download(r.path);
     if(b)await idb.put('music',{id:r.id,name:r.name,blob:b,up:true});
   }
