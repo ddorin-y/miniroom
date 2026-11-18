@@ -278,6 +278,8 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 .bgm-yt .ph-pick{flex:none;padding:8px 14px}
 #ytMsg{margin:6px 2px 0;min-height:1.3em}
 .bgm-list li{display:flex;align-items:center}
+.bgm-empty{padding:14px 4px;font-size:13px;color:#a0a8b8;border-top:1px dotted #e3d6dc}
+.bgm-edit{flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid #e3d6dc;border-radius:999px;padding:6px 12px;margin:6px 4px;background:#fff;color:#444}
 .bgm-list li>button:first-child{flex:1;width:auto;min-width:0}
 .bgm-list .bgm-del{flex:none;width:auto;padding:10px 12px;color:#c9a0b2;font-size:16px;border-top:1px dotted #e3d6dc}
 .gm-bar{display:flex;align-items:center;gap:10px;font-size:13px;color:#666}.gm-bar b{color:#e0567a;font-size:15px}
@@ -457,7 +459,7 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
   <div class="who-bar"><span id="whoNow"></span><button id="switchBtn">사람 바꾸기</button><button id="logoutBtn">로그아웃</button></div>
   <div class="frame">
     <div class="mrbar"><span class="mrlabel">Mini Room</span><button class="mrname" id="mrName" aria-label="방 이름 바꾸기"></button></div>
-    <div class="bgm" id="bgm"><button id="bgmBtn" aria-label="BGM 재생">▶</button><div class="eq" aria-hidden="true"><i></i><i></i><i></i></div><div class="marq"><span>♪ 우리 방 테마 (8비트 예시곡)</span></div></div>
+    <div class="bgm" id="bgm"><button id="bgmBtn" aria-label="BGM 재생">▶</button><div class="eq" aria-hidden="true"><i></i><i></i><i></i></div><div class="marq"><span>♪ 음악을 추가해 보세요</span></div></div>
     <div class="room" id="room">
       <canvas id="bg" aria-label="남자아이 방과 신혼방이 섞인 픽셀 미니룸. 캐릭터를 끌어서 옮기고, 누르면 말풍선을 적을 수 있어요."></canvas>
       <button class="hot" id="hotCal" aria-label="달력 열기"></button>
@@ -1266,26 +1268,22 @@ showMood();
 moodBtn.addEventListener('click',()=>{drawMoodGrid();moodDlg.showModal();moodGrid.querySelector('[aria-pressed="true"]')?.focus();});
 // BGM: original 8-bit tracks + your own uploaded music
 const NF=n=>{const m={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[n[0]],o=+n.slice(-1),sh=n[1]==='#'?1:0;return 440*Math.pow(2,(m+sh+12*(o+1)-69)/12);};
-const TRACKS=[
-  {id:'t1',name:'우리 방 테마',spb:.2,lead:'square',mel:['E5','G5','C6','G5','A5','G5','E5',null,'D5','E5','F5','E5','D5','C5','D5',null,'E5','G5','C6','D6','C6','A5','G5',null,'F5','E5','D5','G5','C5',null,null,null],bas:['C3','A2','F2','G2','C3','A2','G2','C3']},
-  {id:'t2',name:'말랑말랑 오후',spb:.26,lead:'triangle',mel:['G4','A4','C5',null,'A4','C5','D5',null,'E5','D5','C5','A4','G4',null,'E4',null,'G4','A4','C5',null,'D5','E5','G5',null,'E5','D5','C5','D5','C5',null,null,null],bas:['C3','F2','A2','G2','C3','F2','G2','C3']},
-  {id:'t3',name:'별빛 자장가',spb:.34,lead:'sine',mel:['C5',null,'E5',null,'G5',null,'E5',null,'F5',null,'A5',null,'G5',null,null,null,'E5',null,'D5',null,'C5',null,'D5',null,'E5',null,'C5',null,null,null,null,null],bas:['C3','F2','C3','G2','A2','F2','G2','C3']},
-  {id:'t4',name:'두근두근 산책',spb:.16,lead:'square',mel:['C5','E5','G5','E5','A5','G5','E5','C5','D5','F5','A5','F5','G5',null,'G5',null,'E5','G5','C6','G5','A5','F5','D5','F5','E5','D5','C5','D5','C5',null,null,null],bas:['C3','A2','D3','G2','C3','F2','G2','C3']},
-];
+const TRACKS=[];   // 기본 8비트 예시곡은 모두 삭제함 (내가 추가한 음악만 사용)
 let ac=null,tick=null,step=0,next=0,audioEl=null,userTracks=[],curId=ls.get('mr-bgm','t1');
 let ytp=null,ytOk=false,ytOn=false,ytWant=null,ytCur=null,ytLoading=false;   // 유튜브 플레이어 상태
 function blip(f,t,d,type,v){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.03);}
-const curTrack=()=>TRACKS.find(t=>t.id===curId)||userTracks.find(t=>t.id===curId)||TRACKS[0];
+const curTrack=()=>TRACKS.find(t=>t.id===curId)||userTracks.find(t=>t.id===curId)||TRACKS[0]||userTracks[0]||null;
 function sched(){const T=curTrack();while(next<ac.currentTime+.15){const m=T.mel[step%32];if(m)blip(NF(m),next,T.spb*.9,T.lead,T.lead==='square'?.035:.06);if(step%4===0)blip(NF(T.bas[(step/4)%8]),next,T.spb*3.6,'triangle',.07);next+=T.spb;step++;}}
 const bgm=document.getElementById('bgm'),bgmBtn=document.getElementById('bgmBtn'),bgmTitle=bgm.querySelector('.marq span');
 const isPlaying=()=>!!tick||ytOn||(audioEl&&!audioEl.paused);
 function stopBgm(){if(tick){clearInterval(tick);tick=null;}if(audioEl){audioEl.pause();}ytOn=false;if(ytp&&ytOk){try{ytp.pauseVideo();}catch(e){}}bgm.classList.remove('playing');bgmBtn.textContent='▶';bgmBtn.setAttribute('aria-label','BGM 재생');}
 function playBgm(){stopBgm();const T=curTrack();
+  if(!T){drawBgmList();try{bgmDlg.showModal();}catch(e){}return;}   // 음악이 하나도 없으면 추가 창을 열어 줌
   if(T.yt){ytPlay(T.yt);}
   else if(T.blob){if(!audioEl){audioEl=new Audio();audioEl.loop=true;}if(audioEl.dataset.id!==T.id){if(audioEl.src)URL.revokeObjectURL(audioEl.src);audioEl.src=URL.createObjectURL(T.blob);audioEl.dataset.id=T.id;}audioEl.play().catch(()=>{});}
   else{ac=ac||new (window.AudioContext||window.webkitAudioContext)();ac.resume();next=ac.currentTime+.05;step=0;tick=setInterval(sched,25);sched();}
   bgm.classList.add('playing');bgmBtn.textContent='❚❚';bgmBtn.setAttribute('aria-label','BGM 멈춤');}
-const showTitle=()=>{bgmTitle.textContent='♪ '+curTrack().name;};
+const showTitle=()=>{const T=curTrack();if(T)curId=T.id;bgmTitle.textContent=T?'♪ '+T.name:'♪ 음악을 추가해 보세요';};
 bgmBtn.addEventListener('click',()=>isPlaying()?stopBgm():playBgm());
 
 /* ---------- 유튜브 음악 (공식 IFrame 플레이어를 화면 밖에 두고 소리만 재생) ---------- */
@@ -1348,6 +1346,26 @@ function ytPlay(id){
   ytOn=true;ytWant=id;ytInit();
   if(ytp&&ytOk){if(ytCur!==id){ytCur=id;ytp.loadVideoById(id);}else ytp.playVideo();}
 }
+function editTitle(t,li){   // 목록의 그 줄을 입력칸으로 바꿔서 제목 고치기
+  li.innerHTML='';
+  const inp=document.createElement('input');inp.className='bgm-edit';inp.maxLength=60;inp.value=t.name;inp.setAttribute('aria-label','곡 제목');
+  const ok=document.createElement('button'),no=document.createElement('button');
+  ok.type=no.type='button';ok.className=no.className='bgm-del';
+  ok.textContent='✓';ok.setAttribute('aria-label','저장');no.textContent='×';no.setAttribute('aria-label','취소');
+  const done=()=>{inp.blur();drawBgmList();};
+  const save=async()=>{
+    const name=inp.value.trim().slice(0,60);
+    if(name&&name!==t.name){
+      t.name=name;try{await idb.put('music',t);}catch(e){}
+      if(SB)SB.from('music_items').update({name}).eq('id',t.id).then(()=>{});   // 상대 기기에도 반영
+      showTitle();
+    }
+    done();
+  };
+  ok.onclick=save;no.onclick=done;
+  inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();save();}};
+  li.append(inp,ok,no);inp.focus();inp.select();
+}
 async function delMusic(t){
   if(SB){try{
     const {data}=await SB.from('music_items').select('path').eq('id',t.id).maybeSingle();
@@ -1355,7 +1373,7 @@ async function delMusic(t){
     if(data&&data.path&&!String(data.path).startsWith('yt:'))await SB.storage.from('music').remove([data.path]);
   }catch(e){}}
   await idb.del('music',t.id);userTracks=userTracks.filter(x=>x.id!==t.id);
-  if(curId===t.id){stopBgm();curId='t1';ls.set('mr-bgm',curId);}
+  if(curId===t.id){stopBgm();curId=(userTracks[0]&&userTracks[0].id)||'';ls.set('mr-bgm',curId);}
   showTitle();drawBgmList();
 }
 document.getElementById('ytForm').onsubmit=async e=>{
@@ -1608,11 +1626,14 @@ document.getElementById('hotTV').onclick=()=>{paintStars(mvScore);drawMovies();s
 /* ---------- 카세트 플레이어: BGM 고르기 ---------- */
 const bgmDlg=document.getElementById('bgmDlg');
 placeHot(document.getElementById('hotBox'),bboxOf(11.5,5.9,0,1.1,.45,10));
-function drawBgmList(){const ul=document.getElementById('bgmList');ul.innerHTML='';
+function drawBgmList(){const ul=document.getElementById('bgmList');
+  if(document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('bgm-edit'))return;   // 제목 고치는 중에는 목록을 다시 그리지 않음
+  ul.innerHTML='';
+  if(![...TRACKS,...userTracks].length){const li=document.createElement('li');li.className='bgm-empty';li.textContent='아직 음악이 없어요. 아래에서 파일이나 유튜브 주소로 추가해 보세요.';ul.appendChild(li);}
   [...TRACKS,...userTracks].forEach((t,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.type='button';b.setAttribute('aria-pressed',t.id===curId);
     b.innerHTML=`<span class="no">${String(i+1).padStart(2,'0')}</span><span class="ti"></span><span class="ln"></span>`;b.querySelector('.ti').textContent=t.name;b.querySelector('.ln').textContent=(t.yt||t.blob)?'내 음악':'8비트';
     b.onclick=()=>{curId=t.id;ls.set('mr-bgm',curId);showTitle();playBgm();drawBgmList();};li.appendChild(b);
-    if(t.yt||t.blob){const d=document.createElement('button');d.type='button';d.className='bgm-del';d.textContent='×';d.setAttribute('aria-label',t.name+' 지우기');d.onclick=()=>{if(confirm('이 음악을 목록에서 지울까요?'))delMusic(t);};li.appendChild(d);}
+    if(t.yt||t.blob){const ed=document.createElement('button');ed.type='button';ed.className='bgm-del';ed.textContent='✎';ed.setAttribute('aria-label',t.name+' 제목 고치기');ed.onclick=()=>editTitle(t,li);li.appendChild(ed);const d=document.createElement('button');d.type='button';d.className='bgm-del';d.textContent='×';d.setAttribute('aria-label',t.name+' 지우기');d.onclick=()=>{if(confirm('이 음악을 목록에서 지울까요?'))delMusic(t);};li.appendChild(d);}
     ul.appendChild(li);});
   if(userTracks.some(t=>t.yt))ytInit();}
 document.getElementById('bgmFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const t={id:'u'+Date.now(),name:f.name.replace(/\.[^.]+$/,''),blob:f};
