@@ -431,6 +431,31 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 .dlg .close,.dlg .close:hover,.dlg .close:focus,.dlg .close:focus-visible{border:none!important;background:none!important;outline:none!important;box-shadow:none!important;border-radius:0!important}
 .dlg .close:focus-visible{color:#e0567a!important}
 [hidden]{display:none!important}
+/* 싱크대 아래 서랍 (간식) */
+#snDlg{width:min(340px,92vw)}
+.sn-cab{position:relative;height:196px;margin:6px 0 4px;background:#f4e4ec;border:3px solid #c9a0b2;border-radius:10px;box-shadow:inset 0 6px 0 #e7cfda;overflow:hidden;perspective:700px}
+.sn-in{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:space-around;padding:0 10px 30px;background:linear-gradient(#fff7fa 62%,#f7dfe8 62%)}
+.sn-item{appearance:none;border:none;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-family:var(--dotum);color:#4a3a42}
+.sn-item img{image-rendering:pixelated;display:block;width:84px;height:auto}
+.sn-item:nth-child(2) img{width:56px}
+.sn-item b{font-size:12.5px;margin-top:8px}.sn-item i{font-style:normal;font-size:11px;color:#b39aa6}
+.sn-item.hop img{animation:snhop .45s ease-out}
+@keyframes snhop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px)}65%{transform:translateY(0)}82%{transform:translateY(-4px)}}
+.sn-door{position:absolute;top:0;bottom:0;width:50%;transition:transform .7s cubic-bezier(.3,.7,.3,1);z-index:2}
+.sn-door span{position:absolute;inset:4px;background:#e3f7ee;border:3px solid #79b9a0;border-radius:6px}
+.sn-door span::after{content:"";position:absolute;top:50%;width:9px;height:9px;background:#f27a98;border-radius:2px}
+.sn-door.l{left:0;transform-origin:0 50%}.sn-door.l span::after{right:12px}
+.sn-door.r{right:0;transform-origin:100% 50%}.sn-door.r span::after{left:12px}
+.dlg.open .sn-door.l{transform:rotateY(-105deg)}.dlg.open .sn-door.r{transform:rotateY(105deg)}
+.sn-tip{margin:6px 0 0;text-align:center;font-size:12px;color:#b39aa6}
+@media (prefers-reduced-motion:reduce){.sn-door{transition:none}.sn-item.hop img{animation:none}}
+/* 욕실 */
+.room.in-bath>*:not(#bg):not(.bath-ui):not(.mm):not(.pop){display:none!important}
+.room:not(.in-bath) .bath-ui{display:none}
+.bath-ui.hot{z-index:7}
+.bath-say{position:absolute;z-index:300;transform:translate(-50%,-100%);background:#fff;color:#222;border:1px solid #8c8c8c;border-radius:5px;padding:2px 6px 3px;font-family:var(--dotum);font-size:clamp(10px,2.3vw,12px);line-height:1.4;white-space:nowrap;pointer-events:none;-webkit-font-smoothing:none}
+.bath-say::after{content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#8c8c8c;border-bottom:0}
+.bath-say[hidden]{display:none}
 /* 선물 팝업 (옛날 윈도우 스타일) */
 .gift95{border:0;padding:0;background:#c0c0c0;width:min(340px,90vw);max-width:none;font-family:"Courier New",Courier,monospace;color:#000;
   box-shadow:inset -1px -1px #000,inset 1px 1px #fff,inset -2px -2px #808080,inset 2px 2px #dfdfdf,0 8px 28px rgba(0,0,0,.35)}
@@ -486,7 +511,7 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
       <button class="hot" id="hotPoster" aria-label="포스터 사진 바꾸기"></button>
       <button class="hot" id="hotDiary" aria-label="메모함 열기"></button>
       <button class="hot" id="hotTap" aria-pressed="false" aria-label="수도꼭지 틀기"></button>
-      <button class="hot" id="hotSnack" aria-expanded="false" aria-label="싱크대 아래 서랍 열고 닫기, 간식 보기"></button>
+      <button class="hot" id="hotSnack" aria-haspopup="dialog" aria-label="싱크대 아래 서랍 열기, 간식 보기"></button>
       <button class="hot" id="hotDoor" aria-label="문, 외출 알림판"></button>
       <button class="hot" id="hotWin" aria-label="창문, 오늘 날씨 고르기"></button>
       <button class="hot" id="hotPlant" aria-label="하트 화분 물 주기"></button>
@@ -500,6 +525,12 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
       <button class="hot" id="hotBooks" aria-label="책장, 책 리뷰와 구절"></button>
       <button class="hot" id="hotTV" aria-label="TV 켜기, 영화 기록 보기"></button>
       <button class="hot" id="hotBox" aria-label="카세트 플레이어, BGM 고르기"></button>
+      <button class="hot" id="hotBath" aria-label="욕실로 들어가기"></button>
+      <button class="hot bath-ui" id="hotBathDoor" aria-label="문. 누르면 방으로 돌아가요"></button>
+      <button class="hot bath-ui" id="hotTub" aria-pressed="false" aria-label="욕조에 물 받기"></button>
+      <button class="hot bath-ui" id="hotDuck" aria-label="오리 인형 누르기"></button>
+      <button class="hot bath-ui" id="hotMirror" aria-label="거울 보기"></button>
+      <div class="bath-say bath-ui" id="bathSay" role="status" hidden></div>
       <img class="wallpic" id="wallPic" alt="" hidden>
       <form class="pop" id="pop" hidden><input id="popIn" maxlength="30" placeholder="말풍선을 적어 주세요" aria-label="말풍선 내용"><button type="submit">저장</button></form>
     </div>
@@ -515,6 +546,17 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
   <div class="g-bar"><span id="giftTitle">System message</span><button type="button" class="g-x" id="giftX" aria-label="닫기 (Ok를 눌러야 닫혀요)">X</button></div>
   <p class="g-body" id="giftMsg"></p>
   <div class="g-btns"><button type="button" class="g-btn" id="giftOk">Ok</button><button type="button" class="g-btn" id="giftNo">Cancel</button></div>
+</dialog>
+<dialog class="dlg" id="snDlg" aria-labelledby="snTitle">
+  <div class="dlg-h"><h2 id="snTitle"><span class="pixt">SNACK</span><span class="memo-sub">싱크대 아래 서랍</span></h2><button class="close" data-close aria-label="닫기">×</button></div>
+  <div class="sn-cab" id="snCab">
+    <div class="sn-in">
+      <button class="sn-item" type="button" aria-label="비쵸비 초코"><img alt="" src="data:image/png;base64,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"><b>비쵸비</b><i>초코</i></button>
+      <button class="sn-item" type="button" aria-label="꼬깔콘 군옥수수맛"><img alt="" src="data:image/png;base64,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"><b>꼬깔콘</b><i>군옥수수맛</i></button>
+    </div>
+    <div class="sn-door l"><span></span></div><div class="sn-door r"><span></span></div>
+  </div>
+  <p class="sn-tip">과자를 톡 눌러 보세요.</p>
 </dialog>
 <dialog class="dlg wide" id="albDlg" aria-labelledby="albTitle">
   <div class="dlg-h"><h2 id="albTitle"><span class="pixt">ALBUM</span><span class="memo-sub">우리의 추억 사진첩</span></h2><button class="close" data-close aria-label="닫기">×</button></div>
@@ -680,7 +722,23 @@ function makeSurface(canvas,w,h){
 /* ---------- room ---------- */
 const R=makeSurface(document.getElementById('bg'),CW,CH);
 let SX=0,SY=0,SZ=0;
-let SNK=0;   // 싱크대 서랍이 열린 정도 (0 닫힘 ~ 1 활짝 열림)
+let BATH=false;   // 욕실을 보고 있는지
+let BATHFILL=false;   // 물 받는 중(수도꼭지에서 물이 나옴)
+const BDUCK=[
+"...oooo.....",
+"..oyyyyo....",
+".oyywyyyo...",
+".oykyyyyoo..",
+"bbbyyyyyyo..",
+"obbyyyyyyyoo",
+".oyyyyyYYyyo",
+".oyyyyYYYYyo",
+"..oyyyyyyyo.",
+"...ooooooo.."];
+const BDUCKP={o:'#c98a12',y:'#ffdd55',Y:'#ffc233',w:'#fff6c2',k:'#3b2a20',b:'#ff8a3d'};
+const BUBL=[".ww.","wBBw","wBBw",".ww."],BUBLP={w:'#8fc4ee',B:'#dff1ff'};
+let TUB=0;       // 욕조 물 높이 (0 빈 욕조 ~ 1 가득)
+let DUCKY=0;     // 오리가 통통 뛰는 높이
 const P=(x,y,z=0)=>[Math.round(OX+(x+SX-y-SY)*16),Math.round(OY+(x+SX+y+SY)*8-(z+SZ)*2)];
 const quad=(a,b,c,d,f,o)=>{R.fill([a,b,c,d],f);if(o)R.outline([a,b,c,d],o);};
 const qY=(y,x0,x1,z0,z1,f,o)=>quad(P(x0,y,z0),P(x1,y,z0),P(x1,y,z1),P(x0,y,z1),f,o);
@@ -1080,33 +1138,21 @@ function drawExtras(){
     for(const [x,y,c] of [[3,6,'#f27a98'],[5.4,7.2,'#ffd04d'],[9.6,6.8,'#7fb6e8'],[6.2,8.6,'#8fdcc2'],[10.8,5.4,'#f27a98'],[4.2,5.2,'#ffd04d'],[8.6,8.9,'#f27a98']])dot(P(x,y,0),0,0,c);
   }
 }
-// 싱크대 아래 서랍: 문 두 짝 (SNK가 0보다 크면 경첩 쪽을 축으로 바깥으로 열리고 안쪽에 과자가 보임)
-const SNACK_BOX={rows:["ooooooooooooooo","occcccbbbbbbmmo","ocyyyccbwwbbmmo","oyyyyyybwwbbmmo","oddddddbbbbbmmo","oyyyyyycccccmmo","ommmmmmttttttmo","ocmddcmtdttdtmo","occcccctttttttm","ooooooooooooooo"],pal:{"o": "#5c3a30", "c": "#fbf4e2", "b": "#5b2c20", "w": "#fffaf0", "y": "#e8ad5a", "d": "#6e3a24", "m": "#9a7448", "t": "#c9a56e"}};   // 비쵸비 초코
-const SNACK_BAG={rows:[".oooooooooo.","ondndndndndo","onwwwwwwwwno","onwddwddwwno","onwdddddwnno","onnwwwwwnnno","onrwrwwnnyyo","onrrwwnnyyyo","onrrrnnnyyyo","onnrrnnnyygo","onnnrnnnnngo","onnnnngggggo","onnnngggggno","ondndndndndo",".oooooooooo."],pal:{"o": "#3e2218", "n": "#6b3a28", "d": "#4a2619", "w": "#f7f1e8", "r": "#dc8c3c", "y": "#f2b83c", "g": "#a8d24c"}};   // 꼬깔콘 군옥수수맛
+// 싱크대 아래 서랍: 문 두 짝 (닫힌 모양)
 function sinkDoors(){
   const DF='#e3f7ee',DO='#79b9a0',KN='#f27a98';
-  if(SNK<=0){qX(1.2,5.05,6.05,3,13,DF,DO);qX(1.2,6.35,7.35,3,13,DF,DO);dot(P(1.2,5.95,9),0,0,KN);dot(P(1.2,6.45,9),0,0,KN);return;}
-  const D=.7;   // 서랍 안쪽 깊이
-  for(const [y0,y1] of [[5.05,6.05],[6.35,7.35]]){
-    qX(1.2-D,y0,y1,3,13,'#c9a8ba');                                          // 안쪽 벽 (겉면보다 진하게)
-    quad(P(1.2-D,y0,3),P(1.2,y0,3),P(1.2,y0,13),P(1.2-D,y0,13),'#d9bfcd');   // 안쪽 옆벽
-    qZ(3,1.2-D,1.2,y0,y1,'#f6e6ee','#b58fa3');                                // 바닥(과자가 올라서는 칸)
-    R.outline([P(1.2,y0,3),P(1.2,y1,3),P(1.2,y1,13),P(1.2,y0,13)],'#b58fa3');
-  }
-  const put=(S,y)=>{const p=P(1.2-.25,y,3),w=S.rows[0].length,h=S.rows.length;R.sprite(S.rows,S.pal,p[0]-(w>>1),p[1]-h+1);};
-  put(SNACK_BAG,5.35);put(SNACK_BOX,6.52);                                   // 과자 두 개
-  const th=SNK*Math.PI*.74,sn=Math.sin(th),cs=Math.cos(th);
-  for(const [hy,dir] of [[5.05,1],[7.35,-1]]){                               // 문: 바깥 가장자리가 경첩
-    const ex=1.2+sn,ey=hy+dir*cs;
-    quad(P(1.2,hy,3),P(ex,ey,3),P(ex,ey,13),P(1.2,hy,13),DF,DO);
-    dot(P(1.2+.9*sn,hy+dir*.9*cs,9),0,0,KN);                                 // 손잡이
-  }
+  qX(1.2,5.05,6.05,3,13,DF,DO);qX(1.2,6.35,7.35,3,13,DF,DO);dot(P(1.2,5.95,9),0,0,KN);dot(P(1.2,6.45,9),0,0,KN);
 }
 let lastMode='';
 let LIGHTS=(()=>{try{const v=JSON.parse(localStorage.getItem('mr-lights'));return v===null?true:!!v;}catch(e){return true;}})();
 function dimRoom(){const B=R.B;for(let i=0;i<B.length;i++){const v=B[i];if(!(v>>>24))continue;const r=v&255,g=(v>>8)&255,b=(v>>16)&255;
   B[i]=((255<<24)|(Math.min(255,b*.5+42)<<16)|(Math.min(255,g*.42+20)<<8)|Math.min(255,r*.42+22))>>>0;}}
-function render(){lastMode=skyMode();walls();wallDecor();furniture();drawExtras();if(!LIGHTS)dimRoom();drawLights();R.flush();document.getElementById('room').classList.toggle('dark',!LIGHTS);}
+function drawBathCue(){   // 방 바깥 오른쪽 아래: 욕실 입구 표시(고무 오리와 거품)
+  {const pud=[];for(let a=0;a<20;a++){const t=a/20*Math.PI*2;pud.push([355+Math.cos(t)*40,347+Math.sin(t)*7]);}R.fill(pud,'#e3effa');}
+  R.sprite(BDUCK,BDUCKP,342,322,2);
+  R.sprite(BUBL,BUBLP,326,318,2);R.sprite(BUBL,BUBLP,376,310,2);R.sprite(BUBL,BUBLP,386,330,1);
+}
+function render(){lastMode=skyMode();R.B.fill(0);if(BATH)drawBath();else{walls();wallDecor();furniture();drawExtras();drawBathCue();}if(!LIGHTS)dimRoom();if(!BATH)drawLights();R.flush();document.getElementById('room').classList.toggle('dark',!LIGHTS);}
 render();setInterval(render,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&skyMode()!==lastMode)render();});
 
@@ -1209,16 +1255,18 @@ const room=document.getElementById('room');
 const state={};
 CHARS.forEach(c=>{
   const s=saved[c.id]||{};
-  state[c.id]={x:s.x??c.pos[0],y:s.y??c.pos[1],say:s.say??(c.id==='juhun'?'놀러 왔구나!':'')};
+  state[c.id]={x:s.x??c.pos[0],y:s.y??c.pos[1],bx:s.bx,by:s.by,say:s.say??(c.id==='juhun'?'놀러 왔구나!':'')};
   const el=document.createElement('div');el.className='mm';el.tabIndex=0;el.setAttribute('role','img');el.setAttribute('aria-label',c.name+' 미니미. 끌어서 옮길 수 있어요.');
   el.innerHTML='<div class="bubble"></div><canvas></canvas>';el.setAttribute('aria-label',c.name+' 미니미. 끌어서 옮기고, 누르면 말풍선을 적을 수 있어요.');
   drawMinimi(el.querySelector('canvas'),c);room.appendChild(el);c.el=el;
 });
+function gp(c){const s=state[c.id];return BATH?{x:s.bx??c.pos[0],y:s.by??c.pos[1]}:{x:s.x,y:s.y};}
+function sp2(c,x,y){const s=state[c.id];if(BATH){s.bx=x;s.by=y;}else{s.x=x;s.y=y;}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}push(KEY,state);}
 function place(c){
-  const s=state[c.id],p=P(s.x,s.y,0);
+  const s=state[c.id],g=gp(c),p=P(g.x,g.y,0);
   c.el.style.left=(p[0]/CW*100)+'%';c.el.style.top=((p[1]+2)/CH*100)+'%';
-  c.el.style.zIndex=String(10+Math.round((s.x+s.y)*10));
+  c.el.style.zIndex=String(10+Math.round((g.x+g.y)*10));
   c.el.querySelector('.bubble').textContent=s.say;
 }
 CHARS.forEach(place);
@@ -1228,17 +1276,17 @@ function toGrid(e,off){const r=room.getBoundingClientRect(),nx=(e.clientX-r.left
 CHARS.forEach(c=>{
   let off=null;
   let start=null,moved=false;
-  c.el.addEventListener('pointerdown',e=>{const r=room.getBoundingClientRect(),s=state[c.id],p=P(s.x,s.y,0);start=[e.clientX,e.clientY];moved=false;
+  c.el.addEventListener('pointerdown',e=>{const r=room.getBoundingClientRect(),g0=gp(c),p=P(g0.x,g0.y,0);start=[e.clientX,e.clientY];moved=false;
     off=[(e.clientX-r.left)/r.width*CW-p[0],(e.clientY-r.top)/r.height*CH-p[1]];c.el.setPointerCapture(e.pointerId);c.el.classList.add('drag');e.preventDefault();});
-  c.el.addEventListener('pointermove',e=>{if(!off)return;if(!moved&&Math.hypot(e.clientX-start[0],e.clientY-start[1])<5)return;moved=true;closePop();const g=toGrid(e,off);state[c.id].x=g[0];state[c.id].y=g[1];place(c);});
+  c.el.addEventListener('pointermove',e=>{if(!off)return;if(!moved&&Math.hypot(e.clientX-start[0],e.clientY-start[1])<5)return;moved=true;closePop();const g=toGrid(e,off);sp2(c,g[0],g[1]);place(c);});
   const end=()=>{if(off){off=null;c.el.classList.remove('drag');save();}};
   c.el.addEventListener('pointerup',()=>{const click=off&&!moved;end();if(click)openPop(c);});c.el.addEventListener('pointercancel',end);
   c.el.addEventListener('keydown',e=>{const m={ArrowUp:[0,-.5],ArrowDown:[0,.5],ArrowLeft:[-.5,0],ArrowRight:[.5,0]}[e.key];if(!m)return;e.preventDefault();
-    const s=state[c.id];s.x=clamp(s.x+m[0],.4,13.6);s.y=clamp(s.y+m[1],.4,9.6);place(c);save();});
+    const g=gp(c);sp2(c,clamp(g.x+m[0],.4,13.6),clamp(g.y+m[1],.4,9.6));place(c);save();});
   c.el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();popKb=true;openPop(c);}});
 });
 const pop=document.getElementById('pop'),popIn=document.getElementById('popIn');let popFor=null;
-function openPop(c){popFor=c;const s=state[c.id],p=P(s.x,s.y,0);
+function openPop(c){popFor=c;const s=state[c.id],g=gp(c),p=P(g.x,g.y,0);
   pop.style.left=Math.min(80,Math.max(20,p[0]/CW*100))+'%';pop.style.top=Math.max(14,(p[1]-CHH-4)/CH*100)+'%';
   popIn.value=s.say;popIn.placeholder=c.name+'의 말풍선';pop.hidden=false;popIn.focus();popIn.select();}
 let popKb=false;
@@ -1297,8 +1345,8 @@ function scheduleReload(){   // 창을 열어 두었거나 글을 쓰는 중이�
 function applyState(v){   // 상대 미니미의 위치·말풍선은 새로고침 없이 바로 반영
   const me=ls.get('mr-user','');let fix=false;
   CHARS.forEach(c=>{const s=v&&v[c.id];if(!s)return;
-    if(c.id===me){const m=state[c.id];if(m.x!==s.x||m.y!==s.y||m.say!==s.say)fix=true;return;}
-    Object.assign(state[c.id],{x:s.x??state[c.id].x,y:s.y??state[c.id].y,say:s.say??state[c.id].say});place(c);});
+    if(c.id===me){const m=state[c.id];if(m.x!==s.x||m.y!==s.y||m.say!==s.say||m.bx!==s.bx||m.by!==s.by)fix=true;return;}
+    Object.assign(state[c.id],{x:s.x??state[c.id].x,y:s.y??state[c.id].y,bx:s.bx,by:s.by,say:s.say??state[c.id].say});place(c);});
   if(fix)save();   // 내 미니미 값이 덮어씌워졌다면 내 값으로 다시 저장
 }
 let subbed=false;
@@ -1516,22 +1564,154 @@ function bboxOf(x,y,z,w,d,h){let a=[1e9,1e9,-1e9,-1e9];for(const X of [x,x+w])fo
 function placeHot(el,b){const pad=3;el.style.left=((b[0]+b[2])/2/CW*100)+'%';el.style.top=((b[1]+b[3])/2/CH*100)+'%';el.style.width=((b[2]-b[0]+pad*2)/CW*100)+'%';el.style.height=((b[3]-b[1]+pad*2)/CH*100)+'%';}
 placeHot(document.getElementById('hotCal'),bboxOf(9.65,.27,18,.7,.22,8.5));
 placeHot(document.getElementById('hotDiary'),bboxOf(8.38,5.98,8,1.06,.9,2));
-/* ---------- 싱크대 아래 서랍: 팝업 없이 방 그림에서 문이 직접 열림 ---------- */
-const hotSnack=document.getElementById('hotSnack');
-placeHot(hotSnack,bboxOf(1.2,5.05,3,0,2.3,10));   // 방 그림의 서랍 문 두 짝 위치
-let snkGoal=0,snkRaf=0,snkLast=0;
-function snkMove(goal){
-  snkGoal=goal;cancelAnimationFrame(snkRaf);hotSnack.setAttribute('aria-expanded',goal?'true':'false');
-  const from=SNK,t0=performance.now(),dur=matchMedia('(prefers-reduced-motion:reduce)').matches?0:520;
-  const step=now=>{
-    const k=dur?Math.min(1,(now-t0)/dur):1;
-    if(k<1&&now-snkLast<30){snkRaf=requestAnimationFrame(step);return;}   // 너무 자주 다시 그리지 않음
-    snkLast=now;SNK=k<1?from+(goal-from)*(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2):goal;
-    render();if(k<1)snkRaf=requestAnimationFrame(step);
-  };
-  snkRaf=requestAnimationFrame(step);
+/* ---------- 싱크대 아래 서랍: 누르면 팝업으로 서랍 속이 보임 ---------- */
+const hotSnack=document.getElementById('hotSnack'),snDlg=document.getElementById('snDlg');
+placeHot(hotSnack,bboxOf(1.2,5.05,3,0,2.3,10));
+hotSnack.onclick=()=>{snDlg.classList.remove('open');snDlg.showModal();requestAnimationFrame(()=>requestAnimationFrame(()=>snDlg.classList.add('open')));};
+snDlg.addEventListener('close',()=>snDlg.classList.remove('open'));
+snDlg.querySelectorAll('.sn-item').forEach(b=>b.addEventListener('click',()=>{b.classList.remove('hop');void b.offsetWidth;b.classList.add('hop');}));
+
+/* ---------- 욕실 (같은 방 그림 판에 욕실을 그려서 바꿔 보여 줌) ---------- */
+function bathWalls(){
+  const TL='#e8f6fb',TL2='#d6edf6',GR='#b9dcea';
+  quad(P(-.3,10,0),P(14,10,0),P(14,10,-6),P(-.3,10,-6),'#f2c2d1',WO);
+  quad(P(14,10,0),P(14,-.3,0),P(14,-.3,-6),P(14,10,-6),'#e9adc0',WO);
+  // 오른쪽 벽: 위는 분홍 줄무늬, 아래는 타일
+  qY(0,0,14,0,WH,'#f9d9e3');for(let x=.25;x<14;x+=1)qY(0,x,x+.5,30,WH,'#fbe7ee');
+  qY(0,0,14,0,28,TL);for(let x=1;x<14;x+=1)R.line(...P(x,0,0),...P(x,0,28),GR);for(let z=7;z<28;z+=7)R.line(...P(0,0,z),...P(14,0,z),GR);
+  qY(0,0,14,28,31,'#bfe8d8');
+  // 왼쪽 벽: 위는 연보라 줄무늬, 아래는 타일
+  qX(0,0,10,0,WH,'#f3e8fb');for(let y=.25;y<10;y+=1)qX(0,y,y+.5,30,WH,'#faf4fd');
+  qX(0,0,10,0,28,TL2);for(let y=1;y<10;y+=1)R.line(...P(0,y,0),...P(0,y,28),GR);for(let z=7;z<28;z+=7)R.line(...P(0,0,z),...P(0,10,z),GR);
+  qX(0,0,10,28,31,'#bfe8d8');
+  R.outline([P(0,0,0),P(14,0,0),P(14,0,WH),P(0,0,WH)],WO);R.outline([P(0,0,0),P(0,10,0),P(0,10,WH),P(0,0,WH)],WO);
+  quad(P(-.3,10,-6),P(0,10,-6),P(0,10,WH),P(-.3,10,WH),'#f2c2d1',WO);
+  quad(P(14,0,-6),P(14,-.3,-6),P(14,-.3,WH),P(14,0,WH),'#e9adc0',WO);
+  const cap=[P(-.3,10,WH),P(0,10,WH),P(0,0,WH),P(14,0,WH),P(14,-.3,WH),P(-.3,-.3,WH)];R.fill(cap,'#fff7fa');R.outline(cap,WO);
+  // 바닥: 하늘색·흰색 타일
+  for(let i=0;i<14;i++)for(let j=0;j<10;j++)qZ(0,i,i+1,j,j+1,(i+j)%2?'#d9eefa':'#f7fcff');
+  R.outline([P(0,0),P(14,0),P(14,10),P(0,10)],'#a9cfe3');
 }
-hotSnack.onclick=()=>snkMove(snkGoal?0:1);   // 누르면 열리고, 다시 누르면 닫힘
+function bathDecor(){
+  // 욕조 위 작은 창 (지금 시간대 하늘색)
+  const [top,bot]=SKY[skyMode()],x0=5,x1=8.6,z0=40,z1=62;
+  qY(0,x0-.25,x1+.25,z0-2,z1+2,'#fff7fa','#d9a9b9');
+  for(let i=0;i<8;i++){const a=z1-(z1-z0)*i/8,b=z1-(z1-z0)*(i+1)/8;qY(0,x0,x1,b,a,mix(top,bot,i/7));}
+  if(skyMode()==='night'){for(const [x,z] of [[5.7,58],[7.4,55],[6.4,48],[8,60]])dot(P(x,0,z),0,0,'#ffffff');}
+  R.line(...P((x0+x1)/2,0,z0),...P((x0+x1)/2,0,z1),'#fff7fa');R.line(...P(x0,0,(z0+z1)/2),...P(x1,0,(z0+z1)/2),'#fff7fa');
+  // 오른쪽 벽: 수건걸이와 수건 두 장
+  qY(0,10.6,13.4,36,38,'#ffffff',WO);
+  qY(0,10.8,11.9,14,36,'#ffc2d4','#e08ba6');for(let z=18;z<36;z+=5)R.line(...P(10.8,0,z),...P(11.9,0,z),'#ffe3ec');
+  qY(0,12.1,13.2,18,36,'#bfe8d8','#7fbfa4');for(let z=22;z<36;z+=5)R.line(...P(12.1,0,z),...P(13.2,0,z),'#e3f7ee');
+  // 왼쪽 벽: 둥근 거울
+  const mc=[];for(let a=0;a<24;a++){const t=a/24*Math.PI*2;mc.push(P(0,6.4+Math.cos(t)*1.15,45+Math.sin(t)*14));}
+  R.fill(mc,'#e7b4c6');R.outline(mc,'#c98aa3');
+  const mi=[];for(let a=0;a<24;a++){const t=a/24*Math.PI*2;mi.push(P(0,6.4+Math.cos(t)*.95,45+Math.sin(t)*11.8));}
+  R.fill(mi,'#eaf6ff');R.line(...P(0,5.8,50),...P(0,6.3,55),'#ffffff');R.line(...P(0,5.6,47),...P(0,5.8,49),'#ffffff');
+  // 왼쪽 벽: 문
+  qX(0,8,9.75,0,44,'#e6f2ff','#86a9d1');qX(0,8.2,9.55,4,40,'#d4e8fc','#86a9d1');
+  dot(P(0,8.35,20),0,0,'#f27a98');
+  qX(0,8.25,9.5,46,52,'#fff8ec','#c9a98a');
+  // 벽 하트 장식
+  S2(HEART,{k:'#e08ba6',p:'#ffb3c8'},P(0,2.6,50),-3,-3);S2(MINIH,{p:'#ffd6e0'},P(5,0,32),-2,-2);
+}
+function bathTub(){
+  const x0=2.2,x1=10.2,y0=.25,y1=3.05,h=13,ox0=2.65,ox1=9.75,oy0=.7,oy1=2.6,fl=3;
+  const WHT='#ffffff',FR='#f1f7fc',RT='#dce8f4',OUT='#8aa6c8';
+  // 겉 모양(윗면, 앞면, 오른쪽 면)
+  qY(y1,x0,x1,0,h,FR,OUT);qX(x1,y0,y1,0,h,RT,OUT);qZ(h,x0,x1,y0,y1,WHT,OUT);
+  // 안쪽: 빈 욕조 → 먼 벽, 왼쪽 벽, 바닥
+  qZ(h,ox0,ox1,oy0,oy1,'#e4edf8');
+  qY(oy0,ox0,ox1,fl,h,'#d3e1f2');qX(ox0,oy0,oy1,fl,h,'#c3d5ec');qZ(fl,ox0,ox1,oy0,oy1,'#f4f8fc');
+  // 물: 높이만큼 차오름
+  if(TUB>0){
+    const wl=fl+TUB*7;
+    qY(oy0,ox0,ox1,fl,wl,'#8ccbf2');qX(ox0,oy0,oy1,fl,wl,'#74b9ea');
+    qZ(wl,ox0,ox1,oy0,oy1,'#a9dcf9');
+    R.line(...P(ox0+.8,1.1,wl),...P(ox0+2.2,1.1,wl),'#e2f4ff');R.line(...P(ox0+3.5,1.9,wl),...P(ox0+5.2,1.9,wl),'#e2f4ff');
+    if(TUB>.55){   // 거품
+      for(const [bx,by,r] of [[3.4,1.3,0],[4.1,1.9,1],[5.2,1.1,0],[6.3,1.8,1],[7.4,1.2,0],[8.3,2.0,1],[8.9,1.2,1],[5.8,2.2,0]]){
+        const p=P(bx,by,wl),sz=r?3:2;R.rect(p[0]-sz,p[1]-sz-1,sz*2,sz*2,'#ffffff');R.rect(p[0]-sz+1,p[1]-sz-2,sz*2-2,1,'#ffffff');R.px(p[0]-1,p[1]-sz,'#cfeaff');}
+    }
+    if(TUB>.7){   // 떠 있는 오리
+      const p=P(7.2,1.5,wl);R.sprite(BDUCK,BDUCKP,p[0]-12,p[1]-17-DUCKY,2);
+    }
+  }else{
+    const p=P(7.2,1.5,fl);R.sprite(BDUCK,BDUCKP,p[0]-12,p[1]-17-DUCKY,2);   // 빈 욕조 바닥에 앉은 오리
+  }
+  // 물이 앞쪽 가장자리를 넘어 그려진 부분을 앞면·테두리로 다시 덮음
+  qZ(h,x0,x1,2.6,y1,WHT,OUT);qZ(h,9.75,x1,y0,y1,WHT,OUT);
+  qY(y1,x0,x1,0,h,FR,OUT);qX(x1,y0,y1,0,h,RT,OUT);
+  R.line(...P(x0+.3,y1,9),...P(x1-.3,y1,9),'#dbe8f4');                 // 욕조 옆 무늬 선
+  // 받침 발
+  for(const fx of [x0+.5,x1-.9])qY(y1,fx,fx+.5,-1,0,'#f4b6c8','#c46f88');
+  // 수도꼭지 + 쏟아지는 물줄기 (물 받는 중)
+  const tp=P(3.2,.12,20);R.rect(tp[0]-2,tp[1]-10,4,8,'#cfd6e4');R.rect(tp[0]-2,tp[1]-12,10,3,'#cfd6e4');R.rect(tp[0]+6,tp[1]-10,3,5,'#cfd6e4');R.rect(tp[0]-4,tp[1]-4,2,2,'#f27a98');R.rect(tp[0]+2,tp[1]-4,2,2,'#7fb6e8');
+  if(BATHFILL){const sx=tp[0]+7,sy=tp[1]-5,ex=P(3.2,1.4,fl+TUB*7)[1];for(let y=sy;y<ex;y+=2)R.rect(sx-1,y,2,2,(y/2|0)%2?'#bfe5fb':'#9fd4f5');}
+}
+function bathFurniture(){
+  // 욕실 매트(욕조 앞)
+  const m=[[4.4,3.5],[8.6,3.5],[8.6,5.3],[4.4,5.3]].map(q=>P(q[0],q[1],.15));R.fill(m,'#ffc7d6');R.outline(m,'#e08ba6');
+  const m2=[[4.8,3.8],[8.2,3.8],[8.2,5.0],[4.8,5.0]].map(q=>P(q[0],q[1],.15));R.fill(m2,'#ffdbe5');
+  // 변기 (왼쪽 벽 쪽)
+  box(.1,3.25,0,.85,1.5,22,K.white);                                        // 물탱크
+  box(.55,3.1,0,1.9,1.8,10,K.white);                                        // 변기통
+  R.fill(oct(.95,3.25,10,1.3,1.5,.4),'#f3f8fc');R.outline(oct(.95,3.25,10,1.3,1.5,.4),'#9aa3b8');
+  R.fill(oct(1.15,3.5,10,.85,1.0,.3),'#bfe0f5');                           // 물 고인 곳
+  const bt=P(.4,4.0,23);R.rect(bt[0]-2,bt[1]-2,4,3,'#f27a98');              // 물 내리는 버튼
+  // 세면대 (왼쪽 벽 쪽)
+  box(.1,5.4,0,1.2,2.5,15,WH2);
+  qX(1.3,5.6,6.55,2,13,'#e3f7ee','#79b9a0');qX(1.3,6.75,7.7,2,13,'#e3f7ee','#79b9a0');
+  dot(P(1.3,6.4,8),0,0,'#f27a98');dot(P(1.3,6.9,8),0,0,'#f27a98');
+  R.fill(oct(.3,5.75,15,.8,1.8,.25),'#cfe8f7');R.outline(oct(.3,5.75,15,.8,1.8,.25),'#9aa3b8');   // 세면볼
+  const fp=P(.15,6.65,17);R.rect(fp[0]-2,fp[1]-6,4,6,'#cfd6e4');R.rect(fp[0]-2,fp[1]-8,8,3,'#cfd6e4');
+  // 칫솔 컵
+  const cp=P(.45,7.35,15);R.rect(cp[0]-3,cp[1]-7,6,7,'#cfe4fb');R.rect(cp[0]-3,cp[1]-7,6,1,'#86a9d1');R.rect(cp[0]-1,cp[1]-11,1,5,'#f27a98');R.rect(cp[0]+1,cp[1]-10,1,4,'#7fb6e8');
+  // 빨래 바구니 (오른쪽 뒤 구석)
+  box(11.4,.4,0,1.7,1.6,11,K.terra);
+  for(let z=3;z<11;z+=3)R.line(...P(11.4,2.0,z),...P(13.1,2.0,z),'#b8683f');
+  qZ(11,11.5,13.0,.5,1.9,'#f6e1c8','#8e4f31');R.rect(P(12.1,1.3,12)[0]-3,P(12.1,1.3,12)[1]-5,6,5,'#bfe8d8');
+  // 체중계
+  box(11.2,4.2,0,1.5,1.3,2,K.white);qZ(2,11.5,12.4,4.4,5.2,'#cfe8f7');
+  // 화분
+  sp(LEAF,{g:'#7cc58a',G:'#4fa56a'},13.3,3.4,5,4);box(13.0,3.1,0,.6,.6,5,K.terra);
+}
+function drawBath(){bathWalls();bathDecor();bathTub();bathFurniture();}
+let bathRaf=0,bathLast=0,bathSayT=0;
+function bathAnim(goal){   // 욕조에 물 받기/빼기
+  BATHFILL=goal>TUB;cancelAnimationFrame(bathRaf);const from=TUB,t0=performance.now(),dur=matchMedia('(prefers-reduced-motion:reduce)').matches?0:(goal>from?2600:1400);
+  document.getElementById('hotTub').setAttribute('aria-pressed',goal>0?'true':'false');
+  const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1;
+    if(k<1&&now-bathLast<45){bathRaf=requestAnimationFrame(step);return;}
+    bathLast=now;TUB=from+(goal-from)*k;if(k>=1)BATHFILL=false;render();if(k<1)bathRaf=requestAnimationFrame(step);else if(goal>0)bathSay('hotTub','목욕할 시간이야~');};
+  bathRaf=requestAnimationFrame(step);
+}
+function bathSay(hotId,txt){
+  const b=document.getElementById('bathSay'),h=document.getElementById(hotId);
+  b.textContent=txt;b.style.left=h.style.left;b.style.top='calc('+h.style.top+' - '+(parseFloat(h.style.height)/2)+'%)';b.hidden=false;
+  clearTimeout(bathSayT);bathSayT=setTimeout(()=>{b.hidden=true;},1700);
+}
+function bathEnter(on){
+  BATH=on;const room=document.getElementById('room');room.classList.toggle('in-bath',on);
+  closePop();CHARS.forEach(place);document.getElementById('bathSay').hidden=true;
+  document.getElementById('bg').setAttribute('aria-label',on?'욕실. 욕조, 오리, 거울을 눌러 볼 수 있어요.':'남자아이 방과 신혼방이 섞인 픽셀 미니룸. 캐릭터를 끌어서 옮기고, 누르면 말풍선을 적을 수 있어요.');
+  render();(on?document.getElementById('hotBathDoor'):document.getElementById('hotBath')).focus({preventScroll:true});
+}
+document.getElementById('hotBath').onclick=()=>bathEnter(true);
+document.getElementById('hotBathDoor').onclick=()=>bathEnter(false);
+placeHot(document.getElementById('hotBathDoor'),bboxOf(0,8,0,.01,1.75,44));
+document.getElementById('hotTub').onclick=()=>bathAnim(TUB>.5||BATHFILL?0:1);
+document.getElementById('hotDuck').onclick=()=>{
+  const t0=performance.now(),dur=520;cancelAnimationFrame(window.__duckRaf);
+  const st=now=>{const k=Math.min(1,(now-t0)/dur);DUCKY=Math.round(Math.sin(k*Math.PI*2)**2*(k<1?1:0)*10*(1-k));render();if(k<1)window.__duckRaf=requestAnimationFrame(st);else{DUCKY=0;render();}};
+  window.__duckRaf=requestAnimationFrame(st);bathSay('hotDuck',['꽥!','꽥꽥~','삑삑!'][Math.floor(Math.random()*3)]);
+};
+document.getElementById('hotMirror').onclick=()=>bathSay('hotMirror',['오늘도 둘 다 멋지다','거울 속 우리 잘 어울려','머리 괜찮아?'][Math.floor(Math.random()*3)]);
+placeHot(document.getElementById('hotTub'),bboxOf(2.2,.25,0,8,2.8,13));
+placeHot(document.getElementById('hotDuck'),bboxOf(6.6,.9,3,1.2,1.2,8));
+placeHot(document.getElementById('hotMirror'),bboxOf(0,5.25,31,.01,2.3,28));
+// 방 바깥 오른쪽 아래 빈 곳: 욕실 입구 (고무 오리 + 거품)
+placeHot(document.getElementById('hotBath'),[318,306,392,352]);
 document.querySelectorAll('.dlg').forEach(d=>{d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-close]'))d.close();});});
 const WD='일월화수목금토';
 let diary=ls.get('mr-diary',{});for(const k in diary){const v=diary[k];if(v.text===undefined){v.text=[v.juhun,v.geonho].filter(Boolean).join('\n\n');delete v.juhun;delete v.geonho;}if(!v.text)delete diary[k];}
