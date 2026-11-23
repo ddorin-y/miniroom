@@ -1683,7 +1683,7 @@ function bathAnim(goal){   // 욕조에 물 받기/빼기
   document.getElementById('hotTub').setAttribute('aria-pressed',goal>0?'true':'false');
   const step=now=>{const k=dur?Math.min(1,(now-t0)/dur):1;
     if(k<1&&now-bathLast<45){bathRaf=requestAnimationFrame(step);return;}
-    bathLast=now;TUB=from+(goal-from)*k;if(k>=1)BATHFILL=false;render();if(k<1)bathRaf=requestAnimationFrame(step);else if(goal>0)bathSay('hotTub','목욕할 시간이야~');};
+    bathLast=now;TUB=from+(goal-from)*k;if(k>=1)BATHFILL=false;render();if(k<1)bathRaf=requestAnimationFrame(step);else if(goal>0)bathSay('hotTub','같이 들어가자');};
   bathRaf=requestAnimationFrame(step);
 }
 function bathSay(hotId,txt){
