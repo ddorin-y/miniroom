@@ -1706,7 +1706,7 @@ document.getElementById('hotDuck').onclick=()=>{
   const st=now=>{const k=Math.min(1,(now-t0)/dur);DUCKY=Math.round(Math.sin(k*Math.PI*2)**2*(k<1?1:0)*10*(1-k));render();if(k<1)window.__duckRaf=requestAnimationFrame(st);else{DUCKY=0;render();}};
   window.__duckRaf=requestAnimationFrame(st);bathSay('hotDuck',['꽥!','꽥꽥~','삑삑!'][Math.floor(Math.random()*3)]);
 };
-document.getElementById('hotMirror').onclick=()=>bathSay('hotMirror',['오늘도 둘 다 멋지다','거울 속 우리 잘 어울려','머리 괜찮아?'][Math.floor(Math.random()*3)]);
+document.getElementById('hotMirror').onclick=()=>bathSay('hotMirror',['우리 건호 예쁘네','까치집 어쩔래','안 봐도 예뻐'][Math.floor(Math.random()*3)]);
 placeHot(document.getElementById('hotTub'),bboxOf(2.2,.25,0,8,2.8,13));
 placeHot(document.getElementById('hotDuck'),bboxOf(6.6,.9,3,1.2,1.2,8));
 placeHot(document.getElementById('hotMirror'),bboxOf(0,5.25,31,.01,2.3,28));
