@@ -486,6 +486,7 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
       <button class="hot" id="hotPoster" aria-label="포스터 사진 바꾸기"></button>
       <button class="hot" id="hotDiary" aria-label="메모함 열기"></button>
       <button class="hot" id="hotTap" aria-pressed="false" aria-label="수도꼭지 틀기"></button>
+      <button class="hot" id="hotSnack" aria-expanded="false" aria-label="싱크대 아래 서랍 열고 닫기, 간식 보기"></button>
       <button class="hot" id="hotDoor" aria-label="문, 외출 알림판"></button>
       <button class="hot" id="hotWin" aria-label="창문, 오늘 날씨 고르기"></button>
       <button class="hot" id="hotPlant" aria-label="하트 화분 물 주기"></button>
@@ -595,7 +596,7 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 </dialog>
 <dialog class="dlg wide" id="tvDlg" aria-labelledby="tvTitle">
   <div class="dlg-h"><h2 id="tvTitle"><span class="pixt">MOVIE</span><span class="memo-sub">우리의 영화 기록</span></h2><button class="close" data-close aria-label="닫기">×</button></div>
-  <div class="tv-tabs" role="tablist"><button role="tab" aria-selected="true" data-p="rate">평가</button><button role="tab" aria-selected="false" data-p="wish">보고 싶어요</button></div>
+  <div class="tv-tabs" role="tablist"><button role="tab" aria-selected="true" data-p="rate">평가</button><button role="tab" aria-selected="false" data-p="wish">보고싶어요</button></div>
   <div id="tvRate">
     <p class="tv-sum" id="tvSum"></p>
     <form class="mv-form" id="mvForm">
@@ -648,10 +649,10 @@ body{margin:0;color:var(--ink);background-color:var(--bg);
 <script>
 (function(){
 /* ===================== 선물 팝업 설정 (여기만 고치면 돼요) ===================== */
-const GIFT_URL='https://kko.to/97vDeZ3ABX';          // ← OK를 눌렀을 때 이동할 링크를 따옴표 안에 적어 주세요.  예: 'https://example.com/gift'
+const GIFT_URL='';          // ← OK를 눌렀을 때 이동할 링크를 따옴표 안에 적어 주세요.  예: 'https://example.com/gift'
 const GIFT_NEW_TAB=true;    // true: 새 탭에서 열기 / false: 지금 탭에서 이동
 const GIFT_MSG='주훈 님께서 선물을 보내셨습니다. 확인하시겠습니까?';
-const GIFT_ID='gift-1005';     // 같은 번호면 건호에게 딱 한 번만 떠요. 다시 띄우고 싶으면 'gift-2'처럼 바꾸세요.
+const GIFT_ID='gift-1';     // 같은 번호면 건호에게 딱 한 번만 떠요. 다시 띄우고 싶으면 'gift-2'처럼 바꾸세요.
 /* ============================================================================= */
 const CW=424,CH=376,OX=184,OY=164,WH=72;
 const cc={};
@@ -679,6 +680,7 @@ function makeSurface(canvas,w,h){
 /* ---------- room ---------- */
 const R=makeSurface(document.getElementById('bg'),CW,CH);
 let SX=0,SY=0,SZ=0;
+let SNK=0;   // 싱크대 서랍이 열린 정도 (0 닫힘 ~ 1 활짝 열림)
 const P=(x,y,z=0)=>[Math.round(OX+(x+SX-y-SY)*16),Math.round(OY+(x+SX+y+SY)*8-(z+SZ)*2)];
 const quad=(a,b,c,d,f,o)=>{R.fill([a,b,c,d],f);if(o)R.outline([a,b,c,d],o);};
 const qY=(y,x0,x1,z0,z1,f,o)=>quad(P(x0,y,z0),P(x1,y,z0),P(x1,y,z1),P(x0,y,z1),f,o);
@@ -996,8 +998,7 @@ function furniture(){
   box(13.33,.28,0,.44,.44,6,T('#ffffff','#fdeef3','#f6dbe5','#d9a7b8'));qZ(6,13.37,13.73,.32,.68,'#c9a07a');
   { const st=plantStage(),PS=PLANT_SPR[st];if(PS.stem)box(13.53,.48,6,.05,.05,PS.stem,T('#8fcb93','#7ab67e','#6aa06e','#4f8a56'));sp(PS.rows,plantPal(st),13.55,.5,6+(PS.stem||0)); }
   // kitchen counter with sink
-  box(.1,4.8,0,1.1,2.8,16,WH2);qX(1.2,5.05,6.05,3,13,'#e3f7ee','#79b9a0');qX(1.2,6.35,7.35,3,13,'#e3f7ee','#79b9a0');
-  dot(P(1.2,5.95,9),0,0,'#f27a98');dot(P(1.2,6.45,9),0,0,'#f27a98');
+  box(.1,4.8,0,1.1,2.8,16,WH2);sinkDoors();
   box(.05,4.75,16,1.2,2.9,1.5,T('#fdf6f8','#f3e3ea','#e8d2dc','#c9a0b2'));
   qZ(17.5,.3,.95,5.05,5.95,'#d6e8f4','#9ab4c8');
   box(.15,5.42,17.5,.12,.12,6,T('#ffffff','#f4eef2','#e6dce4','#b9a8b8'));box(.15,5.42,23.5,.42,.12,1,T('#ffffff','#f4eef2','#e6dce4','#b9a8b8'));
@@ -1077,6 +1078,28 @@ function drawExtras(){
     const cols=['#f27a98','#ffd04d','#7fb6e8','#8fdcc2'];let i=0;
     for(let x=.6;x<5.2;x+=.55){const a=P(x,0,70),b=P(x+.5,0,70),c=P(x+.25,0,62);R.fill([a,b,c],cols[i++%4]);}
     for(const [x,y,c] of [[3,6,'#f27a98'],[5.4,7.2,'#ffd04d'],[9.6,6.8,'#7fb6e8'],[6.2,8.6,'#8fdcc2'],[10.8,5.4,'#f27a98'],[4.2,5.2,'#ffd04d'],[8.6,8.9,'#f27a98']])dot(P(x,y,0),0,0,c);
+  }
+}
+// 싱크대 아래 서랍: 문 두 짝 (SNK가 0보다 크면 경첩 쪽을 축으로 바깥으로 열리고 안쪽에 과자가 보임)
+const SNACK_BOX={rows:["ooooooooooooooo","occcccbbbbbbmmo","ocyyyccbwwbbmmo","oyyyyyybwwbbmmo","oddddddbbbbbmmo","oyyyyyycccccmmo","ommmmmmttttttmo","ocmddcmtdttdtmo","occcccctttttttm","ooooooooooooooo"],pal:{"o": "#5c3a30", "c": "#fbf4e2", "b": "#5b2c20", "w": "#fffaf0", "y": "#e8ad5a", "d": "#6e3a24", "m": "#9a7448", "t": "#c9a56e"}};   // 비쵸비 초코
+const SNACK_BAG={rows:[".oooooooooo.","ondndndndndo","onwwwwwwwwno","onwddwddwwno","onwdddddwnno","onnwwwwwnnno","onrwrwwnnyyo","onrrwwnnyyyo","onrrrnnnyyyo","onnrrnnnyygo","onnnrnnnnngo","onnnnngggggo","onnnngggggno","ondndndndndo",".oooooooooo."],pal:{"o": "#3e2218", "n": "#6b3a28", "d": "#4a2619", "w": "#f7f1e8", "r": "#dc8c3c", "y": "#f2b83c", "g": "#a8d24c"}};   // 꼬깔콘 군옥수수맛
+function sinkDoors(){
+  const DF='#e3f7ee',DO='#79b9a0',KN='#f27a98';
+  if(SNK<=0){qX(1.2,5.05,6.05,3,13,DF,DO);qX(1.2,6.35,7.35,3,13,DF,DO);dot(P(1.2,5.95,9),0,0,KN);dot(P(1.2,6.45,9),0,0,KN);return;}
+  const D=.7;   // 서랍 안쪽 깊이
+  for(const [y0,y1] of [[5.05,6.05],[6.35,7.35]]){
+    qX(1.2-D,y0,y1,3,13,'#c9a8ba');                                          // 안쪽 벽 (겉면보다 진하게)
+    quad(P(1.2-D,y0,3),P(1.2,y0,3),P(1.2,y0,13),P(1.2-D,y0,13),'#d9bfcd');   // 안쪽 옆벽
+    qZ(3,1.2-D,1.2,y0,y1,'#f6e6ee','#b58fa3');                                // 바닥(과자가 올라서는 칸)
+    R.outline([P(1.2,y0,3),P(1.2,y1,3),P(1.2,y1,13),P(1.2,y0,13)],'#b58fa3');
+  }
+  const put=(S,y)=>{const p=P(1.2-.25,y,3),w=S.rows[0].length,h=S.rows.length;R.sprite(S.rows,S.pal,p[0]-(w>>1),p[1]-h+1);};
+  put(SNACK_BAG,5.35);put(SNACK_BOX,6.52);                                   // 과자 두 개
+  const th=SNK*Math.PI*.74,sn=Math.sin(th),cs=Math.cos(th);
+  for(const [hy,dir] of [[5.05,1],[7.35,-1]]){                               // 문: 바깥 가장자리가 경첩
+    const ex=1.2+sn,ey=hy+dir*cs;
+    quad(P(1.2,hy,3),P(ex,ey,3),P(ex,ey,13),P(1.2,hy,13),DF,DO);
+    dot(P(1.2+.9*sn,hy+dir*.9*cs,9),0,0,KN);                                 // 손잡이
   }
 }
 let lastMode='';
@@ -1470,10 +1493,19 @@ document.getElementById('cmtForm').onsubmit=e=>{e.preventDefault();const t=cmtIn
   const me=ls.get('mr-user','');comments.push({u:me,n:CHARS.find(c=>c.id===me)?.name||'익명',t,d:Date.now()});ls.set('mr-comments',comments);cmtIn.value='';drawComments();cmtList.scrollTop=cmtList.scrollHeight;};
 drawComments();
 // 기념일 (달력에서 관리)
-let anni=ls.get('mr-anni',[{n:'주훈 생일',m:5,d:21,type:'bday'},{n:'건호 생일',m:9,d:2,type:'bday'}]);
+let anni=ls.get('mr-anni',[{n:'주훈 생일',m:8,d:13,type:'bday'},{n:'건호 생일',m:5,d:22,type:'bday'}]);   // 기본 생일: 주훈 8/13, 건호 5/22
 anni.forEach(a=>{if(!a.type)a.type=/생일/.test(a.n)?'bday':'anni';});
+// 생일만 매년 반복, 기념일은 설정한 그 해에만 표시. 연도 없이 저장된 예전 기념일은 올해 기념일로 고정
+let anniUnsaved=false;   // 연도를 새로 붙였는데 아직 저장(서버 반영) 전인지
+function migrateAnni(save){anni.forEach(a=>{if(a.type!=='bday'&&a.y===undefined){a.y=new Date().getFullYear();anniUnsaved=true;}});if(anniUnsaved&&save){anniUnsaved=false;ls.set('mr-anni',anni);}}
+migrateAnni(false);
+// 이미 저장돼 있는 예전 기본 생일(주훈 5/21, 건호 9/2)을 실제 생일로 교정 (직접 바꾼 생일은 건드리지 않음)
+[['주훈 생일',5,21,8,13],['건호 생일',9,2,5,22]].forEach(([n,m0,d0,m1,d1])=>{
+  const i=anni.findIndex(a=>a.type==='bday'&&a.n===n&&a.m===m0&&a.d===d0);if(i<0)return;
+  if(anni.some(a=>a.type==='bday'&&a.m===m1&&a.d===d1))anni.splice(i,1);else{anni[i].m=m1;anni[i].d=d1;}
+  anniUnsaved=true;});
 const TYPES={anni:{l:'기념일',c:'#f27a98'},bday:{l:'생일',c:'#ff9f43'},special:{l:'특별한 날',c:'#9b7be0'}};
-function nextOf(a){const t=today0();if(a.type==='special')return new Date(a.y,a.m-1,a.d);let d=new Date(t.getFullYear(),a.m-1,a.d);if(d<t)d=new Date(t.getFullYear()+1,a.m-1,a.d);return d;}
+function nextOf(a){const t=today0();if(a.type!=='bday')return new Date(a.y,a.m-1,a.d);let d=new Date(t.getFullYear(),a.m-1,a.d);if(d<t)d=new Date(t.getFullYear()+1,a.m-1,a.d);return d;}
 function drawAnni(){const t=today0().getTime(),hit=anni.find(a=>nextOf(a).getTime()===t),party=!!hit;
   if(party!==DECO.party){DECO.party=party;render();}
   window.__party=hit?`오늘은 ${hit.n}!`:'';updToday();}
@@ -1484,6 +1516,22 @@ function bboxOf(x,y,z,w,d,h){let a=[1e9,1e9,-1e9,-1e9];for(const X of [x,x+w])fo
 function placeHot(el,b){const pad=3;el.style.left=((b[0]+b[2])/2/CW*100)+'%';el.style.top=((b[1]+b[3])/2/CH*100)+'%';el.style.width=((b[2]-b[0]+pad*2)/CW*100)+'%';el.style.height=((b[3]-b[1]+pad*2)/CH*100)+'%';}
 placeHot(document.getElementById('hotCal'),bboxOf(9.65,.27,18,.7,.22,8.5));
 placeHot(document.getElementById('hotDiary'),bboxOf(8.38,5.98,8,1.06,.9,2));
+/* ---------- 싱크대 아래 서랍: 팝업 없이 방 그림에서 문이 직접 열림 ---------- */
+const hotSnack=document.getElementById('hotSnack');
+placeHot(hotSnack,bboxOf(1.2,5.05,3,0,2.3,10));   // 방 그림의 서랍 문 두 짝 위치
+let snkGoal=0,snkRaf=0,snkLast=0;
+function snkMove(goal){
+  snkGoal=goal;cancelAnimationFrame(snkRaf);hotSnack.setAttribute('aria-expanded',goal?'true':'false');
+  const from=SNK,t0=performance.now(),dur=matchMedia('(prefers-reduced-motion:reduce)').matches?0:520;
+  const step=now=>{
+    const k=dur?Math.min(1,(now-t0)/dur):1;
+    if(k<1&&now-snkLast<30){snkRaf=requestAnimationFrame(step);return;}   // 너무 자주 다시 그리지 않음
+    snkLast=now;SNK=k<1?from+(goal-from)*(k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2):goal;
+    render();if(k<1)snkRaf=requestAnimationFrame(step);
+  };
+  snkRaf=requestAnimationFrame(step);
+}
+hotSnack.onclick=()=>snkMove(snkGoal?0:1);   // 누르면 열리고, 다시 누르면 닫힘
 document.querySelectorAll('.dlg').forEach(d=>{d.addEventListener('click',e=>{if(e.target===d||e.target.closest('[data-close]'))d.close();});});
 const WD='일월화수목금토';
 let diary=ls.get('mr-diary',{});for(const k in diary){const v=diary[k];if(v.text===undefined){v.text=[v.juhun,v.geonho].filter(Boolean).join('\n\n');delete v.juhun;delete v.geonho;}if(!v.text)delete diary[k];}
@@ -1500,7 +1548,7 @@ const STK={
 };
 const calDlg=document.getElementById('calDlg');let calY,calM,calSel;
 function eventsOn(d){const out=[],m=d.getMonth()+1,dd=d.getDate();
-  anni.forEach((a,i)=>{if(a.m===m&&a.d===dd&&(a.type!=='special'||a.y===d.getFullYear()))out.push({k:a.type||'anni',t:a.n,i});});
+  anni.forEach((a,i)=>{if(a.m===m&&a.d===dd&&(a.type==='bday'||a.y===d.getFullYear()))out.push({k:a.type||'anni',t:a.n,i});});
   const mc=memos.filter(m=>dkey(new Date(m.d))===dkey(d)).length;if(mc)out.push({k:'dia',t:`메모 ${mc}개`});
   return out;}
 function drawCal(){document.getElementById('calTitle').textContent=`${calY}년 ${calM+1}월`;
@@ -1513,14 +1561,14 @@ function drawCal(){document.getElementById('calTitle').textContent=`${calY}년 $
     b.setAttribute('aria-label',`${calM+1}월 ${d}일${ev.length?', '+ev.map(e=>e.t).join(', '):''}`);
     b.onclick=e=>{e.stopPropagation();calSel=dkey(dt);drawCal();openCalPop(dt);};g.appendChild(b);}}
 const calPop=document.getElementById('calPop');
-document.getElementById('calTip').innerHTML=`날짜를 누르고 <img class="stk" src="${STK.bday}" alt="케이크">는 생일, <img class="stk" src="${STK.anni}" alt="하트">는 기념일로 표시해요.`;
-function openCalPop(dt){const m=dt.getMonth()+1,d=dt.getDate(),has=t=>anni.some(a=>a.type===t&&a.m===m&&a.d===d);
+document.getElementById('calTip').innerHTML=`날짜를 누르고 <img class="stk" src="${STK.bday}" alt="케이크">는 생일(매년), <img class="stk" src="${STK.anni}" alt="하트">는 기념일(그 해만)로 표시해요.`;
+function openCalPop(dt){const m=dt.getMonth()+1,d=dt.getDate(),yy=dt.getFullYear(),same=(a,t)=>a.type===t&&a.m===m&&a.d===d&&(t==='bday'||a.y===yy),has=t=>anni.some(a=>same(a,t));
   const btn=[...document.querySelectorAll('#calGrid button')][d-1];
   calPop.innerHTML=`<button type="button" data-t="bday" aria-pressed="${has('bday')}"><img src="${STK.bday}" alt=""><span>생일</span></button><button type="button" data-t="anni" aria-pressed="${has('anni')}"><img src="${STK.anni}" alt=""><span>기념일</span></button>`;
   const r=btn.getBoundingClientRect(),q=calDlg.getBoundingClientRect();
   calPop.style.left=Math.min(q.width-76,Math.max(76,r.left-q.left+r.width/2))+'px';calPop.style.top=(r.top-q.top+calDlg.scrollTop-4)+'px';calPop.hidden=false;
   calPop.querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();const t=b.dataset.t;
-    if(has(t))anni=anni.filter(a=>!(a.type===t&&a.m===m&&a.d===d));else anni.push({n:t==='bday'?'생일':'기념일',m,d,type:t});
+    if(has(t))anni=anni.filter(a=>!same(a,t));else anni.push(t==='bday'?{n:'생일',m,d,type:t}:{n:'기념일',m,d,type:t,y:yy});
     ls.set('mr-anni',anni);drawAnni();calPop.hidden=true;calSel=null;drawCal();});
   calPop.querySelector('button').focus();}
 calDlg.addEventListener('click',e=>{if(!calPop.hidden&&!calPop.contains(e.target))calPop.hidden=true;});
@@ -1634,7 +1682,7 @@ document.getElementById('lgForm').onsubmit=async e=>{e.preventDefault();const id
   ls.set('mr-acct',{id});lgPw.value='';ls.set('mr-session',true);
   const changed=await pullAll();syncMedia();subscribe();
   if(changed){reloadOnce();return;}
-  showStep(2);};
+  migrateAnni(true);showStep(2);};
 document.getElementById('switchBtn').onclick=()=>{ls.set('mr-user','');showStep(2);};
 document.getElementById('logoutBtn').onclick=()=>{ls.set('mr-user','');ls.set('mr-session',false);signOutRemote();showStep(1);};
 document.getElementById('lgOut').onclick=()=>{ls.set('mr-session',false);signOutRemote();showStep(1);};
@@ -1792,7 +1840,7 @@ const syncMedia=()=>{syncAlbum();syncMusic();};
 /* 페이지를 열 때: 로그인이 살아 있으면 서버 내용을 받아 오고 실시간 구독 시작 */
 if(SB)SB.auth.getSession().then(({data})=>{
   if(!data||!data.session){if(navigator.onLine&&ls.get('mr-session',false)){ls.set('mr-session',false);ls.set('mr-user','');showStep(1);}return;}
-  pullAll().then(c=>{if(c)scheduleReload();});syncMedia();subscribe();
+  pullAll().then(c=>{if(c)scheduleReload();else migrateAnni(true);});syncMedia();subscribe();
 }).catch(()=>{});
 
 /* ---------- 컴퓨터: 두더지 잡기 ---------- */
